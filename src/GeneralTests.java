@@ -1,5 +1,4 @@
-package br.eng.rodrigogml.rfw.cmd;
-
+import static br.eng.rodrigogml.rfw.cmd.Terminal.beep;
 import static br.eng.rodrigogml.rfw.cmd.Terminal.clear;
 import static br.eng.rodrigogml.rfw.cmd.Terminal.emptyLine;
 import static br.eng.rodrigogml.rfw.cmd.Terminal.listGraphicChars;
@@ -63,6 +62,10 @@ public class GeneralTests {
 
     drawBoxInGraphicMode();
     listGraphicChars();
+
+    beep();
+    beep();
+    beep();
 
     // Resetar todas as formatações antes de sair da aplicação
     reset();
