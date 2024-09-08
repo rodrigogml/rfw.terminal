@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import com.github.lalyos.jfiglet.FigletFont;
 
+import br.eng.rodrigogml.rfw.kernel.utils.RUString;
+
 /**
  * Description: Classe para geração de texto "art ASCII" ou Figlet Fonts sob demanda.<br>
  *
@@ -87,12 +89,12 @@ public class Figlet {
       writer.write("<!DOCTYPE html>\n");
       writer.write("<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n");
       writer.write("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
-      writer.write("<title>Figlet Font Portfolio</title>\n");
+      writer.write("<title>Figlet Fonts</title>\n");
       writer.write("<style>\n");
       writer.write("body { background-color: white; color: black; font-family: monospace; }\n");
       writer.write("pre { font-size: 12px; }\n");
       writer.write("</style>\n</head>\n<body>\n");
-      writer.write("<h1>Figlet Font Portfolio</h1>\n");
+      writer.write("<h1>Figlet Fonts</h1>\n");
 
       // Percorre todas as fontes da enumeração e escreve o texto de exemplo
       for (FigletFontType fontType : FigletFontType.values()) {
@@ -114,4 +116,39 @@ public class Figlet {
       writer.write("</body>\n</html>");
     }
   }
+
+  /**
+   * Centraliza a arte ASCII em um número específico de colunas.
+   * <p>
+   * O método analisa o comprimento da linha mais longa na arte ASCII e insere espaços antes de cada linha para fazer com que a arte pareça centralizada no número de colunas fornecido. Se a linha mais longa já ocupar o total de colunas ou for maior, a arte é retornada sem modificação.
+   *
+   * @param asciiArt A arte ASCII a ser centralizada.
+   * @param totalColumns O número total de colunas disponíveis para centralizar o texto.
+   * @return A arte ASCII centralizada, ou a arte original se já for maior que o número de colunas.
+   */
+  public static String centralize(String asciiArt, int totalColumns) {
+    String[] lines = asciiArt.split("\n");
+
+    int maxLength = 0;
+    for (String line : lines) {
+      if (line.length() > maxLength) {
+        maxLength = line.length();
+      }
+    }
+
+    if (maxLength >= totalColumns) {
+      return asciiArt;
+    }
+
+    // Calcula o número de espaços necessários para centralizar a arte como um todo
+    int padding = (totalColumns - maxLength) / 2;
+    String paddingBlock = RUString.completeUntilLengthRight(" ", "", padding);
+    StringBuilder centeredArt = new StringBuilder();
+    for (String line : lines) {
+      centeredArt.append(paddingBlock).append(line).append("\n");
+    }
+
+    return centeredArt.toString();
+  }
+
 }

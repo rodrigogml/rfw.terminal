@@ -26,11 +26,12 @@ public class GeneralTests {
 
   public static void main(String[] args) throws Exception {
 
-    Figlet.exportFigletPortfolioHTML("RFW Terminal", "C:\\t\\figlet.html");
-    System.exit(0);
+    // Figlet.exportFigletPortfolioHTML("RFW Terminal", "C:\\t\\figlet.html");
 
-    String customAsciiArt = Figlet.generateWithFont("Hello World", Figlet.FigletFontType.BASIC);
+    String customAsciiArt = Figlet.generateWithFont("BIS ERP", Figlet.FigletFontType.GRAFFITI);
+    customAsciiArt = Figlet.centralize(customAsciiArt, 200);
     System.out.println(customAsciiArt);
+    System.exit(0);
 
     String cmd = "arg1 arg2 \"Um argumento extra com espaços!\" arg3 -param1 -param2=valor --param3 = \"Esse é um \\\"Valor\\\" do param3\" arg4 -param5= 'Este é outro \\'tipo de valor com Scape\\' de aspas e outras \" no conteúdo interno do texto'";
     ParsedCommand result = CommandParser.parse(cmd);
