@@ -21,6 +21,13 @@
 					<exclude>**/*.java</exclude>
 				</excludes>
 			</resource>
+			<!-- Adicionando fontes do Figlet -->
+			<resource>
+				<directory>src/flf</directory>
+				<includes>
+					<include>**/*.flf</include>
+				</includes>
+			</resource>
 		</resources>
 		<plugins>
 			<plugin>
@@ -57,6 +64,12 @@
 			<groupId>br.eng.rodrigogml.rfw</groupId>
 			<artifactId>RFW.Kernel</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<!-- Dependência para inclusão da geração de figlet (ascii art) -->
+		<dependency>
+			<groupId>com.github.lalyos</groupId>
+			<artifactId>jfiglet</artifactId>
+			<version>0.0.8</version>
 		</dependency>
 	</dependencies>
 </project>

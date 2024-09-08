@@ -1,14 +1,20 @@
-import static br.eng.rodrigogml.rfw.cmd.Terminal.beep;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.clear;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.emptyLine;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.listGraphicChars;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.moveCursor;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.reset;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.setTextBackgroundColor;
-import static br.eng.rodrigogml.rfw.cmd.Terminal.setTextColor;
+package test;
 
-import br.eng.rodrigogml.rfw.cmd.Terminal.TextBackgroundColor;
-import br.eng.rodrigogml.rfw.cmd.Terminal.TextColor;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.clear;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.emptyLine;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.listGraphicChars;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.moveCursor;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.reset;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.setTextBackgroundColor;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.setTextColor;
+
+import java.util.Map.Entry;
+
+import br.eng.rodrigogml.rfw.terminal.Terminal.TextBackgroundColor;
+import br.eng.rodrigogml.rfw.terminal.Terminal.TextColor;
+import br.eng.rodrigogml.rfw.terminal.parsers.CommandParser;
+import br.eng.rodrigogml.rfw.terminal.parsers.CommandParser.ParsedCommand;
+import br.eng.rodrigogml.rfw.terminal.utils.Figlet;
 
 /**
  * Description: Classe utilizada para alguns teste locais pelo desenvolvedor, não faz parte do teste unitário.<br>
@@ -19,14 +25,37 @@ import br.eng.rodrigogml.rfw.cmd.Terminal.TextColor;
 public class GeneralTests {
 
   public static void main(String[] args) throws Exception {
+
+    Figlet.exportFigletPortfolioHTML("RFW Terminal", "C:\\t\\figlet.html");
+    System.exit(0);
+
+    String customAsciiArt = Figlet.generateWithFont("Hello World", Figlet.FigletFontType.BASIC);
+    System.out.println(customAsciiArt);
+
+    String cmd = "arg1 arg2 \"Um argumento extra com espaços!\" arg3 -param1 -param2=valor --param3 = \"Esse é um \\\"Valor\\\" do param3\" arg4 -param5= 'Este é outro \\'tipo de valor com Scape\\' de aspas e outras \" no conteúdo interno do texto'";
+    ParsedCommand result = CommandParser.parse(cmd);
+
+    for (String arg : result.arguments) {
+      System.out.println("Arg: " + arg);
+    }
+
+    for (Entry<String, String> entry : result.parameters.entrySet()) {
+      System.out.println("Param: " + entry.getKey() + " / Value: " + entry.getValue());
+    }
+
+    System.out.println("[" + ("-teste".replaceAll("^--*", "")) + "]");
+    System.out.println("[" + ("--teste".replaceAll("^--*", "")) + "]");
+    System.out.println("[" + ("---".replaceAll("^--*", "")) + "]");
+    System.out.println("[" + ("-".replaceAll("^--*", "")) + "]");
+
     // Limpa a tela
+    setTextBackgroundColor(TextBackgroundColor.BLUE);
     clear();
 
     // Move o cursor para o topo esquerdo da tela (linha 1, coluna 1)
     // System.out.print("\u001B[1;1H");
     moveCursor(1, 1);
 
-    setTextBackgroundColor(TextBackgroundColor.BLUE);
     setTextColor(TextColor.WHITE);
     System.out.println("Aqui vai um texto de teste.");
     System.out.print("Aqui limparmos até o fim da linha.");
@@ -62,10 +91,6 @@ public class GeneralTests {
 
     drawBoxInGraphicMode();
     listGraphicChars();
-
-    beep();
-    beep();
-    beep();
 
     // Resetar todas as formatações antes de sair da aplicação
     reset();

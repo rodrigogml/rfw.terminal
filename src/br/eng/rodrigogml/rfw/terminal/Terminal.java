@@ -1,4 +1,6 @@
-package br.eng.rodrigogml.rfw.cmd;
+package br.eng.rodrigogml.rfw.terminal;
+
+import java.io.Console;
 
 /**
  * Description: Classe estática com os comandos e constantes necessários para manipulação do terminal.<br>
@@ -8,6 +10,7 @@ package br.eng.rodrigogml.rfw.cmd;
  * @since (8 de set. de 2024)
  */
 public class Terminal {
+
   /**
    * Enumeração para definir as cores de texto no terminal.
    */
@@ -690,6 +693,74 @@ public class Terminal {
     System.out.print("|");
     System.out.println();
     System.out.println("+-----------------------------------------------------------------+----------------------------------------------------------------+");
+  }
+
+  /**
+   * Lê uma linha de entrada do console.
+   * <p>
+   * Este método utiliza {@link System#console()} para capturar a entrada do usuário diretamente do console e retorna o texto digitado. É necessário que o programa esteja rodando em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
+   *
+   * @return Uma {@link String} representando a linha de texto digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
+   */
+  public static String readLine() {
+    Console console = System.console();
+    if (console == null) {
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
+    }
+    return console.readLine();
+  }
+
+  /**
+   * Lê uma linha de entrada do console, exibindo um prompt personalizado.
+   * <p>
+   * Este método utiliza {@link System#console()} para capturar a entrada do usuário e exibe um prompt personalizado antes de capturar o texto. O programa deve ser executado em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
+   *
+   * @param prompt O texto a ser exibido antes da captura da entrada.
+   * @return Uma {@link String} representando a linha de texto digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
+   */
+  public static String readLine(String prompt) {
+    Console console = System.console();
+    if (console == null) {
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
+    }
+    return console.readLine(prompt);
+  }
+
+  /**
+   * Lê uma senha do console sem exibir os caracteres digitados.
+   * <p>
+   * Este método utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal. A senha é retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior segurança.
+   *
+   * @return Uma {@link String} representando a senha digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
+   */
+  public static String readPassword() {
+    Console console = System.console();
+    if (console == null) {
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
+    }
+    char[] passwordChars = console.readPassword();
+    return new String(passwordChars);
+  }
+
+  /**
+   * Lê uma senha do console sem exibir os caracteres digitados, exibindo um prompt personalizado.
+   * <p>
+   * Este método utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal e exibe um prompt personalizado antes da captura. A senha é retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior segurança.
+   *
+   * @param prompt O texto a ser exibido antes da captura da senha.
+   * @return Uma {@link String} representando a senha digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
+   */
+  public static String readPassword(String prompt) {
+    Console console = System.console();
+    if (console == null) {
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
+    }
+    char[] passwordChars = console.readPassword(prompt);
+    return new String(passwordChars);
   }
 
 }
