@@ -4,36 +4,46 @@ import static br.eng.rodrigogml.rfw.terminal.Terminal.clear;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.emptyLine;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.listGraphicChars;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.moveCursor;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.removeTextFormat;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.reset;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.setTextBackgroundColor;
 import static br.eng.rodrigogml.rfw.terminal.Terminal.setTextColor;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.setTextFormat;
+import static br.eng.rodrigogml.rfw.terminal.Terminal.writeFigletCentralized;
 
 import java.util.Map.Entry;
 
 import br.eng.rodrigogml.rfw.terminal.Terminal.TextBackgroundColor;
 import br.eng.rodrigogml.rfw.terminal.Terminal.TextColor;
+import br.eng.rodrigogml.rfw.terminal.Terminal.TextFormat;
 import br.eng.rodrigogml.rfw.terminal.parsers.CommandParser;
 import br.eng.rodrigogml.rfw.terminal.parsers.CommandParser.ParsedCommand;
 import br.eng.rodrigogml.rfw.terminal.utils.Figlet;
+import br.eng.rodrigogml.rfw.terminal.utils.Figlet.FigletFontType;
 
 /**
- * Description: Classe utilizada para alguns teste locais pelo desenvolvedor, n√£o faz parte do teste unit√°rio.<br>
+ * Description: Classe utilizada para alguns teste locais pelo desenvolvedor, n„o faz parte do teste unit·rio.<br>
  *
- * @author Rodrigo Leit√£o
+ * @author Rodrigo Leit„o
  * @since (8 de set. de 2024)
  */
 public class GeneralTests {
 
   public static void main(String[] args) throws Exception {
-
-    // Figlet.exportFigletPortfolioHTML("RFW Terminal", "C:\\t\\figlet.html");
+    reset();
+    clear();
+    moveCursor(1, 1);
+    setTextColor(TextColor.BRIGHT_WHITE);
+    setTextFormat(TextFormat.BOLD);
+    writeFigletCentralized("BIS HUB", FigletFontType.SPEED);
+    removeTextFormat(TextFormat.BOLD);
+    System.exit(0);
 
     String customAsciiArt = Figlet.generateWithFont("BIS ERP", Figlet.FigletFontType.GRAFFITI);
     customAsciiArt = Figlet.centralize(customAsciiArt, 200);
     System.out.println(customAsciiArt);
-    System.exit(0);
 
-    String cmd = "arg1 arg2 \"Um argumento extra com espa√ßos!\" arg3 -param1 -param2=valor --param3 = \"Esse √© um \\\"Valor\\\" do param3\" arg4 -param5= 'Este √© outro \\'tipo de valor com Scape\\' de aspas e outras \" no conte√∫do interno do texto'";
+    String cmd = "arg1 arg2 \"Um argumento extra com espaÁos!\" arg3 -param1 -param2=valor --param3 = \"Esse È um \\\"Valor\\\" do param3\" arg4 -param5= 'Este È outro \\'tipo de valor com Scape\\' de aspas e outras \" no conte˙do interno do texto'";
     ParsedCommand result = CommandParser.parse(cmd);
 
     for (String arg : result.arguments) {
@@ -59,7 +69,7 @@ public class GeneralTests {
 
     setTextColor(TextColor.WHITE);
     System.out.println("Aqui vai um texto de teste.");
-    System.out.print("Aqui limparmos at√© o fim da linha.");
+    System.out.print("Aqui limparmos atÈ o fim da linha.");
     emptyLine();
     emptyLine();
 
@@ -75,17 +85,17 @@ public class GeneralTests {
     // // Espera 2 segundos
     // Thread.sleep(2000);
     //
-    // // Salva a posi√ß√£o atual do cursor
+    // // Salva a posiÁ„o atual do cursor
     // System.out.print("\u001B[s");
     //
     // // Move o cursor para baixo e para a direita
-    // System.out.print("\u001B[3B\u001B[10CTexto em uma nova posi√ß√£o\n");
+    // System.out.print("\u001B[3B\u001B[10CTexto em uma nova posiÁ„o\n");
     //
-    // // Restaura a posi√ß√£o anterior do cursor
+    // // Restaura a posiÁ„o anterior do cursor
     // System.out.print("\u001B[u");
     //
-    // // Escreve o texto restaurado na posi√ß√£o original
-    // System.out.println("Texto na posi√ß√£o restaurada");
+    // // Escreve o texto restaurado na posiÁ„o original
+    // System.out.println("Texto na posiÁ„o restaurada");
     //
 
     emptyLine(3);
@@ -93,18 +103,18 @@ public class GeneralTests {
     drawBoxInGraphicMode();
     listGraphicChars();
 
-    // Resetar todas as formata√ß√µes antes de sair da aplica√ß√£o
+    // Resetar todas as formataÁıes antes de sair da aplicaÁ„o
     reset();
   }
 
   /**
-   * Ativa o modo gr√°fico e desenha uma caixa no terminal.
+   * Ativa o modo gr·fico e desenha uma caixa no terminal.
    */
   public static void drawBoxInGraphicMode() {
-    // Ativar modo gr√°fico
+    // Ativar modo gr·fico
     System.out.print("\u001B(0");
 
-    // Desenhar caixa usando caracteres gr√°ficos
+    // Desenhar caixa usando caracteres gr·ficos
     System.out.print("lqqqqqqqqqqk\n"); // Topo da caixa
     System.out.print("x          x\n"); // Laterais
     System.out.print("x          x\n"); // Laterais

@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import com.github.lalyos.jfiglet.FigletFont;
 
+import br.eng.rodrigogml.rfw.kernel.exceptions.RFWCriticalException;
+import br.eng.rodrigogml.rfw.kernel.exceptions.RFWException;
 import br.eng.rodrigogml.rfw.kernel.utils.RUString;
 
 /**
@@ -77,43 +79,47 @@ public class Figlet {
    * @param outputPath O caminho para o arquivo .html ou pasta onde o arquivo será salvo.
    * @throws IOException Caso ocorra algum erro ao escrever o arquivo.
    */
-  public static void exportFigletPortfolioHTML(String exampleText, String outputPath) throws IOException {
-    File file;
-    if (outputPath.endsWith(".html")) {
-      file = new File(outputPath);
-    } else {
-      file = new File(outputPath + "/figlet_portfolio.html");
-    }
-
-    try (FileWriter writer = new FileWriter(file)) {
-      writer.write("<!DOCTYPE html>\n");
-      writer.write("<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n");
-      writer.write("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
-      writer.write("<title>Figlet Fonts</title>\n");
-      writer.write("<style>\n");
-      writer.write("body { background-color: white; color: black; font-family: monospace; }\n");
-      writer.write("pre { font-size: 12px; }\n");
-      writer.write("</style>\n</head>\n<body>\n");
-      writer.write("<h1>Figlet Fonts</h1>\n");
-
-      // Percorre todas as fontes da enumeração e escreve o texto de exemplo
-      for (FigletFontType fontType : FigletFontType.values()) {
-        writer.write("<h2>" + fontType.name() + "</h2>\n");
-        writer.write("<pre>\n");
-
-        try {
-          // Gera o texto com a fonte atual
-          String asciiArt = Figlet.generateWithFont(exampleText, fontType);
-          writer.write(asciiArt);
-        } catch (Exception e) {
-          writer.write("[Erro ao gerar ASCII art com a fonte " + fontType.name() + "]\n");
-        }
-
-        writer.write("</pre>\n");
-        writer.write("<hr>\n");
+  public static void exportFigletPortfolioHTML(String exampleText, String outputPath) throws RFWException {
+    try {
+      File file;
+      if (outputPath.endsWith(".html")) {
+        file = new File(outputPath);
+      } else {
+        file = new File(outputPath + "/figlet_portfolio.html");
       }
 
-      writer.write("</body>\n</html>");
+      try (FileWriter writer = new FileWriter(file)) {
+        writer.write("<!DOCTYPE html>\n");
+        writer.write("<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n");
+        writer.write("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
+        writer.write("<title>Figlet Fonts</title>\n");
+        writer.write("<style>\n");
+        writer.write("body { background-color: white; color: black; font-family: monospace; }\n");
+        writer.write("pre { font-size: 12px; }\n");
+        writer.write("</style>\n</head>\n<body>\n");
+        writer.write("<h1>Figlet Fonts</h1>\n");
+
+        // Percorre todas as fontes da enumeração e escreve o texto de exemplo
+        for (FigletFontType fontType : FigletFontType.values()) {
+          writer.write("<h2>" + fontType.name() + "</h2>\n");
+          writer.write("<pre>\n");
+
+          try {
+            // Gera o texto com a fonte atual
+            String asciiArt = Figlet.generateWithFont(exampleText, fontType);
+            writer.write(asciiArt);
+          } catch (Exception e) {
+            writer.write("[Erro ao gerar ASCII art com a fonte " + fontType.name() + "]\n");
+          }
+
+          writer.write("</pre>\n");
+          writer.write("<hr>\n");
+        }
+
+        writer.write("</body>\n</html>");
+      }
+    } catch (IOException e) {
+      throw new RFWCriticalException("Falha ao exportar arquivo modelo!", e);
     }
   }
 

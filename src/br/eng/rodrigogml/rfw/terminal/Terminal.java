@@ -1,18 +1,44 @@
 package br.eng.rodrigogml.rfw.terminal;
 
+import java.io.BufferedReader;
 import java.io.Console;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import br.eng.rodrigogml.rfw.kernel.exceptions.RFWCriticalException;
+import br.eng.rodrigogml.rfw.kernel.exceptions.RFWException;
+import br.eng.rodrigogml.rfw.kernel.preprocess.PreProcess;
+import br.eng.rodrigogml.rfw.kernel.utils.RUString;
+import br.eng.rodrigogml.rfw.terminal.utils.Figlet;
+import br.eng.rodrigogml.rfw.terminal.utils.Kernel32;
 
 /**
- * Description: Classe estÃ¡tica com os comandos e constantes necessÃ¡rios para manipulaÃ§Ã£o do terminal.<br>
- * O objetivo dessa classe Ã© manter todos os comandos e mÃ©todos auxiliares par rÃ¡pida importaÃ§Ã£o, sugerindo que a importaÃ§Ã£o seja estÃ¡tica dos mÃ©todos para mais clareza do cÃ³digo.
+ * Description: Classe estática com os comandos e constantes necessários para manipulação do terminal.<br>
+ * O objetivo dessa classe é manter todos os comandos e métodos auxiliares par rápida importação, sugerindo que a importação seja estática dos métodos para mais clareza do código.
  *
- * @author Rodrigo LeitÃ£o
+ * @author Rodrigo Leitão
  * @since (8 de set. de 2024)
  */
 public class Terminal {
 
   /**
-   * EnumeraÃ§Ã£o para definir as cores de texto no terminal.
+   * Código ASCII para limpar o restante da linha a partir do cursor.<br>
+   * Limpa os caracteres mas deixa o fundo pintado com a cor de fundo vigente.
+   */
+  public static final String ASCII_CLEAR_REMAINING_LINE = "\u001B[0K";
+  /**
+   * Define o tamanho padrão do terminal para quando não for possível obter o tamanho correto do terminal.<Br>
+   */
+  private static int terminalDefaultColumns = 120;
+
+  /**
+   * Acumulador de texto parcial escrito na linha, utilizado por exmeplo pelo comando {@link #writePart(String)}.<br>
+   * Deve ser reiniciado em zero por todos os métodos que quebrarem a linha e somado por todos que escrevem parciamente na linha.
+   */
+  private static int totalPartialLineWrote = 0;
+
+  /**
+   * Enumeração para definir as cores de texto no terminal.
    */
   public static enum TextColor {
 
@@ -67,18 +93,18 @@ public class Terminal {
     private final String activationCode;
 
     /**
-     * Construtor da enumeraÃ§Ã£o, atribuindo os cÃ³digos de ativaÃ§Ã£o e desativaÃ§Ã£o ANSI.
+     * Construtor da enumeração, atribuindo os códigos de ativação e desativação ANSI.
      *
-     * @param activationCode O cÃ³digo ANSI para ativar a cor de texto.
+     * @param activationCode O código ANSI para ativar a cor de texto.
      */
     TextColor(String activationCode) {
       this.activationCode = activationCode;
     }
 
     /**
-     * Retorna o cÃ³digo ANSI para ativar a cor de texto.
+     * Retorna o código ANSI para ativar a cor de texto.
      *
-     * @return O cÃ³digo ANSI para ativar a cor de texto.
+     * @return O código ANSI para ativar a cor de texto.
      */
     public String getActivationCode() {
       return this.activationCode;
@@ -87,7 +113,7 @@ public class Terminal {
   }
 
   /**
-   * EnumeraÃ§Ã£o para definir as cores de fundo no terminal.
+   * Enumeração para definir as cores de fundo no terminal.
    */
   public static enum TextBackgroundColor {
 
@@ -142,18 +168,18 @@ public class Terminal {
     private final String activationCode;
 
     /**
-     * Construtor da enumeraÃ§Ã£o, atribuindo os cÃ³digos de ativaÃ§Ã£o e desativaÃ§Ã£o ANSI.
+     * Construtor da enumeração, atribuindo os códigos de ativação e desativação ANSI.
      *
-     * @param activationCode O cÃ³digo ANSI para ativar a cor de fundo.
+     * @param activationCode O código ANSI para ativar a cor de fundo.
      */
     TextBackgroundColor(String activationCode) {
       this.activationCode = activationCode;
     }
 
     /**
-     * Retorna o cÃ³digo ANSI para ativar a cor de fundo.
+     * Retorna o código ANSI para ativar a cor de fundo.
      *
-     * @return O cÃ³digo ANSI para ativar a cor de fundo.
+     * @return O código ANSI para ativar a cor de fundo.
      */
     public String getActivationCode() {
       return this.activationCode;
@@ -161,17 +187,17 @@ public class Terminal {
   }
 
   /**
-   * EnumeraÃ§Ã£o para definir formataÃ§Ãµes de texto no terminal.
+   * Enumeração para definir formatações de texto no terminal.
    */
   public enum TextFormat {
 
-    /** FormataÃ§Ã£o de texto em negrito. */
+    /** Formatação de texto em negrito. */
     BOLD("\u001B[1m", "\u001B[22m"),
 
-    /** FormataÃ§Ã£o de texto sublinhado. */
+    /** Formatação de texto sublinhado. */
     UNDERLINE("\u001B[4m", "\u001B[24m"),
 
-    /** FormataÃ§Ã£o de texto piscante. */
+    /** Formatação de texto piscante. */
     BLINK("\u001B[5m", "\u001B[25m"),
 
     /** Inverte as cores do texto e do fundo. */
@@ -181,10 +207,10 @@ public class Terminal {
     private final String deactivationCode;
 
     /**
-     * Construtor da enumeraÃ§Ã£o, atribuindo os cÃ³digos de ativaÃ§Ã£o e desativaÃ§Ã£o ANSI.
+     * Construtor da enumeração, atribuindo os códigos de ativação e desativação ANSI.
      *
-     * @param activationCode O cÃ³digo ANSI para ativar a formataÃ§Ã£o.
-     * @param deactivationCode O cÃ³digo ANSI para desativar a formataÃ§Ã£o.
+     * @param activationCode O código ANSI para ativar a formatação.
+     * @param deactivationCode O código ANSI para desativar a formatação.
      */
     TextFormat(String activationCode, String deactivationCode) {
       this.activationCode = activationCode;
@@ -192,18 +218,18 @@ public class Terminal {
     }
 
     /**
-     * Retorna o cÃ³digo ANSI para ativar a formataÃ§Ã£o.
+     * Retorna o código ANSI para ativar a formatação.
      *
-     * @return O cÃ³digo ANSI para ativar a formataÃ§Ã£o.
+     * @return O código ANSI para ativar a formatação.
      */
     public String getActivationCode() {
       return this.activationCode;
     }
 
     /**
-     * Retorna o cÃ³digo ANSI para desativar a formataÃ§Ã£o.
+     * Retorna o código ANSI para desativar a formatação.
      *
-     * @return O cÃ³digo ANSI para desativar a formataÃ§Ã£o.
+     * @return O código ANSI para desativar a formatação.
      */
     public String getDeactivationCode() {
       return this.deactivationCode;
@@ -213,7 +239,7 @@ public class Terminal {
   /**
    * Define a cor do texto no terminal.
    *
-   * @param color A cor do texto a ser definida, baseada na enumeraÃ§Ã£o TextColor.
+   * @param color A cor do texto a ser definida, baseada na enumeração TextColor.
    */
   public static void setTextColor(TextColor color) {
     System.out.print(color.getActivationCode());
@@ -222,16 +248,16 @@ public class Terminal {
   /**
    * Define a cor de fundo no terminal.
    *
-   * @param backgroundColor A cor de fundo a ser definida, baseada na enumeraÃ§Ã£o TextBackgroundColor.
+   * @param backgroundColor A cor de fundo a ser definida, baseada na enumeração TextBackgroundColor.
    */
   public static void setTextBackgroundColor(TextBackgroundColor backgroundColor) {
     System.out.print(backgroundColor.getActivationCode());
   }
 
   /**
-   * Define mÃºltiplas formataÃ§Ãµes de texto no terminal.
+   * Define múltiplas formatações de texto no terminal.
    *
-   * @param formats Um ou mais valores da enumeraÃ§Ã£o TextFormat que devem ser aplicados ao texto.
+   * @param formats Um ou mais valores da enumeração TextFormat que devem ser aplicados ao texto.
    */
   public static void setTextFormat(TextFormat... formats) {
     StringBuilder formatCodes = new StringBuilder();
@@ -242,9 +268,9 @@ public class Terminal {
   }
 
   /**
-   * Remove mÃºltiplas formataÃ§Ãµes de texto no terminal.
+   * Remove múltiplas formatações de texto no terminal.
    *
-   * @param formats Um ou mais valores da enumeraÃ§Ã£o TextFormat que devem ser removidos do texto.
+   * @param formats Um ou mais valores da enumeração TextFormat que devem ser removidos do texto.
    */
   public static void removeTextFormat(TextFormat... formats) {
     StringBuilder formatCodes = new StringBuilder();
@@ -255,7 +281,7 @@ public class Terminal {
   }
 
   /**
-   * Remove todas as formataÃ§Ãµes de texto aplicadas, retornando ao formato padrÃ£o do terminal.
+   * Remove todas as formatações de texto aplicadas, retornando ao formato padrão do terminal.
    */
   public static void resetTextFormat() {
     System.out.print(TextFormat.BOLD.getDeactivationCode() +
@@ -265,14 +291,14 @@ public class Terminal {
   }
 
   /**
-   * Remove a cor atual do texto, retornando Ã  cor padrÃ£o do terminal.
+   * Remove a cor atual do texto, retornando à cor padrão do terminal.
    */
   public static void resetTextColor() {
     System.out.print("\u001B[39m");
   }
 
   /**
-   * Remove a cor atual de fundo, retornando ao fundo padrÃ£o do terminal.
+   * Remove a cor atual de fundo, retornando ao fundo padrão do terminal.
    */
   public static void resetTextBackgroundColor() {
     System.out.print("\u001B[49m");
@@ -287,75 +313,76 @@ public class Terminal {
 
   /**
    * Envia um comando para limpar o restante da linha.<br>
-   * Pode ser utilizado para limpar o restante da linha quando estamos sobreescrevendo algum conteÃºdo, ou para forÃ§ar o preenchimento com a cor de fundo em todo o restante da linha, inependente do tamanho do terminal.
+   * Pode ser utilizado para limpar o restante da linha quando estamos sobreescrevendo algum conteúdo, ou para forçar o preenchimento com a cor de fundo em todo o restante da linha, inependente do tamanho do terminal.
    */
   public static void clearRemainingLine() {
-    System.out.print("\u001B[K"); // Limpa atÃ© o final da linha (preenchendo com o background vermelho)
+    System.out.print("\u001B[K"); // Limpa até o final da linha (preenchendo com o background vermelho)
   }
 
   /**
-   * Reseta o terminal para o estado padrÃ£o, removendo qualquer formataÃ§Ã£o de texto ou cor.
+   * Reseta o terminal para o estado padrão, removendo qualquer formatação de texto ou cor.
    */
   public static void reset() {
     System.out.print("\u001B[0m");
   }
 
   /**
-   * Move o cursor para uma posiÃ§Ã£o especÃ­fica no terminal.
+   * Move o cursor para uma posição específica no terminal.
    *
-   * @param row A linha para onde o cursor deve ser movido (1 Ã© a primeira linha).
-   * @param col A coluna para onde o cursor deve ser movido (1 Ã© a primeira coluna).
+   * @param row A linha para onde o cursor deve ser movido (1 é a primeira linha).
+   * @param col A coluna para onde o cursor deve ser movido (1 é a primeira coluna).
    */
   public static void moveCursor(int row, int col) {
     System.out.print(String.format("\u001B[%d;%dH", row, col));
   }
 
   /**
-   * Move o cursor para cima em um nÃºmero especÃ­fico de linhas.
+   * Move o cursor para cima em um número específico de linhas.
    *
-   * @param lines O nÃºmero de linhas para mover o cursor para cima.
+   * @param lines O número de linhas para mover o cursor para cima.
    */
   public static void moveCursorUp(int lines) {
     System.out.print(String.format("\u001B[%dA", lines));
   }
 
   /**
-   * Move o cursor para baixo em um nÃºmero especÃ­fico de linhas.
+   * Move o cursor para baixo em um número específico de linhas.
    *
-   * @param lines O nÃºmero de linhas para mover o cursor para baixo.
+   * @param lines O número de linhas para mover o cursor para baixo.
    */
   public static void moveCursorDown(int lines) {
     System.out.print(String.format("\u001B[%dB", lines));
   }
 
   /**
-   * Move o cursor para a direita em um nÃºmero especÃ­fico de colunas.
+   * Move o cursor para a direita em um número específico de colunas.
    *
-   * @param columns O nÃºmero de colunas para mover o cursor para a direita.
+   * @param columns O número de colunas para mover o cursor para a direita.
    */
   public static void moveCursorRight(int columns) {
     System.out.print(String.format("\u001B[%dC", columns));
   }
 
   /**
-   * Move o cursor para a esquerda em um nÃºmero especÃ­fico de colunas.
+   * Move o cursor para a esquerda em um número específico de colunas.
    *
-   * @param columns O nÃºmero de colunas para mover o cursor para a esquerda.
+   * @param columns O número de colunas para mover o cursor para a esquerda.
    */
   public static void moveCursorLeft(int columns) {
     System.out.print(String.format("\u001B[%dD", columns));
   }
 
   /**
-   * Este mÃ©todo faz a limpeza do restante da linha atual ({@link #clearRemainingLine()} e imprime uma quebra de linha para garantir que passarÃ¡ para a prÃ³xima.<br>
-   * Se utilizado no comeÃ§o de uma linha, farÃ¡ uma linha em branco com a cor de fundo definida. Se utilizada em uma linha jÃ¡ com conteÃºdo terminarÃ¡ de incluir essa linha.
+   * Este método faz a limpeza do restante da linha atual ({@link #clearRemainingLine()} e imprime uma quebra de linha para garantir que passará para a próxima.<br>
+   * Se utilizado no começo de uma linha, fará uma linha em branco com a cor de fundo definida. Se utilizada em uma linha já com conteúdo terminará de incluir essa linha.
    */
   public static void emptyLine() {
-    System.out.println("\u001B[0K");
+    System.out.println(ASCII_CLEAR_REMAINING_LINE);
+    totalPartialLineWrote = 0;
   }
 
   /**
-   * Este mÃ©todo faz a limpeza do restante da linha atual e imprime uma quebra de linha para garantir que passarÃ¡ para a prÃ³xima. Se utilizado no comeÃ§o de uma linha, farÃ¡ uma linha em branco com a cor de fundo definida. Se utilizado em uma linha jÃ¡ com conteÃºdo, terminarÃ¡ de incluir essa linha.
+   * Este método faz a limpeza do restante da linha atual e imprime uma quebra de linha para garantir que passará para a próxima. Se utilizado no começo de uma linha, fará uma linha em branco com a cor de fundo definida. Se utilizado em uma linha já com conteúdo, terminará de incluir essa linha.
    *
    * @param numberOfLines A quantidade de linhas vazias a serem inseridas.
    */
@@ -370,7 +397,7 @@ public class Terminal {
   }
 
   /**
-   * Limpa a linha atual do inÃ­cio atÃ© a posiÃ§Ã£o do cursor.
+   * Limpa a linha atual do início até a posição do cursor.
    */
   public static void clearLineFromStart() {
     System.out.print("\u001B[1K");
@@ -384,23 +411,23 @@ public class Terminal {
   }
 
   /**
-   * Limpa a tela a partir da posiÃ§Ã£o do cursor atÃ© o final da tela.
+   * Limpa a tela a partir da posição do cursor até o final da tela.
    */
   public static void clearScreenFromCursor() {
     System.out.print("\u001B[0J");
   }
 
   /**
-   * Limpa a tela do inÃ­cio atÃ© a posiÃ§Ã£o atual do cursor.
+   * Limpa a tela do início até a posição atual do cursor.
    */
   public static void clearScreenToCursor() {
     System.out.print("\u001B[1J");
   }
 
   /**
-   * Salva a posiÃ§Ã£o atual do cursor no terminal.
+   * Salva a posição atual do cursor no terminal.
    * <p>
-   * Nota: Apenas uma posiÃ§Ã£o pode ser salva. Se o mÃ©todo for chamado novamente, a posiÃ§Ã£o salva anteriormente serÃ¡ sobrescrita.
+   * Nota: Apenas uma posição pode ser salva. Se o método for chamado novamente, a posição salva anteriormente será sobrescrita.
    * </p>
    */
   public static void saveCursorPosition() {
@@ -408,9 +435,9 @@ public class Terminal {
   }
 
   /**
-   * Restaura a posiÃ§Ã£o do cursor previamente salva no terminal.
+   * Restaura a posição do cursor previamente salva no terminal.
    * <p>
-   * Nota: Se a posiÃ§Ã£o do cursor nÃ£o tiver sido salva anteriormente, este comando nÃ£o terÃ¡ efeito.
+   * Nota: Se a posição do cursor não tiver sido salva anteriormente, este comando não terá efeito.
    * </p>
    */
   public static void restoreCursorPosition() {
@@ -439,51 +466,51 @@ public class Terminal {
   }
 
   /**
-   * Move o cursor para o inÃ­cio da linha atual, sem mudar de linha.
+   * Move o cursor para o início da linha atual, sem mudar de linha.
    */
   public static void returnToStartOfLine() {
     System.out.print("\u001B[G");
   }
 
   /**
-   * Rola o conteÃºdo da tela para cima em um nÃºmero especÃ­fico de linhas.
+   * Rola o conteúdo da tela para cima em um número específico de linhas.
    *
-   * @param lines O nÃºmero de linhas para rolar a tela para cima.
+   * @param lines O número de linhas para rolar a tela para cima.
    */
   public static void scrollUp(int lines) {
     System.out.print(String.format("\u001B[%dS", lines));
   }
 
   /**
-   * Rola o conteÃºdo da tela para baixo em um nÃºmero especÃ­fico de linhas.
+   * Rola o conteúdo da tela para baixo em um número específico de linhas.
    *
-   * @param lines O nÃºmero de linhas para rolar a tela para baixo.
+   * @param lines O número de linhas para rolar a tela para baixo.
    */
   public static void scrollDown(int lines) {
     System.out.print(String.format("\u001B[%dT", lines));
   }
 
   /**
-   * Define uma regiÃ£o de rolagem no terminal, restringindo a rolagem entre uma linha superior e inferior.
+   * Define uma região de rolagem no terminal, restringindo a rolagem entre uma linha superior e inferior.
    *
-   * @param top A linha superior da regiÃ£o de rolagem.
-   * @param bottom A linha inferior da regiÃ£o de rolagem.
+   * @param top A linha superior da região de rolagem.
+   * @param bottom A linha inferior da região de rolagem.
    */
   public static void setScrollRegion(int top, int bottom) {
     System.out.print(String.format("\u001B[%d;%dr", top, bottom));
   }
 
   /**
-   * Reseta a regiÃ£o de rolagem, permitindo rolagem em toda a tela.
+   * Reseta a região de rolagem, permitindo rolagem em toda a tela.
    */
   public static void resetScrollRegion() {
     System.out.print("\u001B[r");
   }
 
   /**
-   * Define o tÃ­tulo da janela do terminal, caso o terminal suporte esta funcionalidade.
+   * Define o título da janela do terminal, caso o terminal suporte esta funcionalidade.
    *
-   * @param title O tÃ­tulo a ser definido para a janela do terminal.
+   * @param title O título a ser definido para a janela do terminal.
    */
   public static void setWindowTitle(String title) {
     System.out.print(String.format("\u001B]0;%s\u0007", title));
@@ -518,14 +545,14 @@ public class Terminal {
   }
 
   /**
-   * Desabilita o echo no terminal para ocultar a entrada de texto do usuÃ¡rio.
+   * Desabilita o echo no terminal para ocultar a entrada de texto do usuário.
    */
   public static void disableEcho() {
     System.out.print("\u001B[12l");
   }
 
   /**
-   * Habilita o echo no terminal para mostrar a entrada de texto do usuÃ¡rio.
+   * Habilita o echo no terminal para mostrar a entrada de texto do usuário.
    */
   public static void enableEcho() {
     System.out.print("\u001B[12h");
@@ -553,7 +580,7 @@ public class Terminal {
   }
 
   /**
-   * Ativa o modo de inserÃ§Ã£o no terminal.
+   * Ativa o modo de inserção no terminal.
    */
   public static void enableInsertMode() {
     System.out.print("\u001B[4h");
@@ -562,7 +589,7 @@ public class Terminal {
   /**
    * Define a cor do texto utilizando a paleta estendida de 256 cores.
    *
-   * @param colorCode O cÃ³digo da cor (0-255).
+   * @param colorCode O código da cor (0-255).
    */
   public static void setExtendedTextColor(int colorCode) {
     System.out.print(String.format("\u001B[38;5;%dm", colorCode));
@@ -571,7 +598,7 @@ public class Terminal {
   /**
    * Define a cor de fundo utilizando a paleta estendida de 256 cores.
    *
-   * @param colorCode O cÃ³digo da cor (0-255).
+   * @param colorCode O código da cor (0-255).
    */
   public static void setExtendedBackgroundColor(int colorCode) {
     System.out.print(String.format("\u001B[48;5;%dm", colorCode));
@@ -588,7 +615,7 @@ public class Terminal {
    * Define o texto para piscar rapidamente.
    */
   public static void setTextBlinkFast() {
-    System.out.print("\u001B[6m"); // Piscar rÃ¡pido
+    System.out.print("\u001B[6m"); // Piscar rápido
   }
 
   /**
@@ -634,15 +661,15 @@ public class Terminal {
   }
 
   /**
-   * Restaura a altura e largura padrÃ£o dos caracteres.
+   * Restaura a altura e largura padrão dos caracteres.
    */
   public static void resetCharSize() {
     System.out.print("\u001B#5");
   }
 
   /**
-   * Alterna para o modo grÃ¡fico, se suportado.<br>
-   * Para mais informaÃ§Ã£o pesquise sobre os terminais:
+   * Alterna para o modo gráfico, se suportado.<br>
+   * Para mais informação pesquise sobre os terminais:
    * <li>VT100 Manual: VT100 User Guide
    * <li>VT220 Manual: VT220 Programmer Reference Manual
    */
@@ -658,15 +685,16 @@ public class Terminal {
   }
 
   /**
-   * Lista os caracteres e seus equivalentes no modo grÃ¡fico.<Br>
+   * Lista os caracteres e seus equivalentes no modo gráfico.<Br>
    * Veja mais em {@link #enableGraphicMode()}.
    */
   public static void listGraphicChars() {
-    // TÃ­tulo
+    // Título
+    disableGraphicMode();
     System.out.println("+-----------------------------------------------------------------+----------------------------------------------------------------+");
     System.out.println("| " + TextFormat.UNDERLINE.getActivationCode() + "Less Support" + TextFormat.UNDERLINE.getDeactivationCode() + "                                                    | " + TextFormat.UNDERLINE.getActivationCode() + "More Support" + TextFormat.UNDERLINE.getDeactivationCode() + "                                                   |");
 
-    // Elementos GrÃ¡ficos
+    // Elementos Gráficos
     System.out.print("| ");
     enableGraphicMode();
     for (char c = 64; c <= 95; c++) {
@@ -681,7 +709,7 @@ public class Terminal {
     disableGraphicMode();
     System.out.println("|");
 
-    // Texto de ReferÃªncia
+    // Texto de Referência
     System.out.print("| ");
     for (char c = 64; c <= 95; c++) {
       System.out.print(c + " ");
@@ -693,74 +721,231 @@ public class Terminal {
     System.out.print("|");
     System.out.println();
     System.out.println("+-----------------------------------------------------------------+----------------------------------------------------------------+");
+    totalPartialLineWrote = 0;
   }
 
   /**
-   * LÃª uma linha de entrada do console.
+   * Lê uma linha de entrada do console.
    * <p>
-   * Este mÃ©todo utiliza {@link System#console()} para capturar a entrada do usuÃ¡rio diretamente do console e retorna o texto digitado. Ã‰ necessÃ¡rio que o programa esteja rodando em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
+   * Este método utiliza {@link System#console()} para capturar a entrada do usuário diretamente do console e retorna o texto digitado. É necessário que o programa esteja rodando em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
    *
-   * @return Uma {@link String} representando a linha de texto digitada pelo usuÃ¡rio.
-   * @throws IllegalStateException se o {@link System#console()} nÃ£o estiver disponÃ­vel.
+   * @return Uma {@link String} representando a linha de texto digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
    */
   public static String readLine() {
     Console console = System.console();
     if (console == null) {
-      throw new IllegalStateException("Console nÃ£o disponÃ­vel. Execute em um terminal.");
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
     }
     return console.readLine();
   }
 
   /**
-   * LÃª uma linha de entrada do console, exibindo um prompt personalizado.
+   * Lê uma linha de entrada do console, exibindo um prompt personalizado.
    * <p>
-   * Este mÃ©todo utiliza {@link System#console()} para capturar a entrada do usuÃ¡rio e exibe um prompt personalizado antes de capturar o texto. O programa deve ser executado em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
+   * Este método utiliza {@link System#console()} para capturar a entrada do usuário e exibe um prompt personalizado antes de capturar o texto. O programa deve ser executado em um terminal ou prompt de comando, pois {@code System.console()} pode retornar {@code null} em alguns ambientes, como IDEs.
    *
    * @param prompt O texto a ser exibido antes da captura da entrada.
-   * @return Uma {@link String} representando a linha de texto digitada pelo usuÃ¡rio.
-   * @throws IllegalStateException se o {@link System#console()} nÃ£o estiver disponÃ­vel.
+   * @return Uma {@link String} representando a linha de texto digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
    */
   public static String readLine(String prompt) {
     Console console = System.console();
     if (console == null) {
-      throw new IllegalStateException("Console nÃ£o disponÃ­vel. Execute em um terminal.");
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
     }
     return console.readLine(prompt);
   }
 
   /**
-   * LÃª uma senha do console sem exibir os caracteres digitados.
+   * Lê uma senha do console sem exibir os caracteres digitados.
    * <p>
-   * Este mÃ©todo utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal. A senha Ã© retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior seguranÃ§a.
+   * Este método utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal. A senha é retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior segurança.
    *
-   * @return Uma {@link String} representando a senha digitada pelo usuÃ¡rio.
-   * @throws IllegalStateException se o {@link System#console()} nÃ£o estiver disponÃ­vel.
+   * @return Uma {@link String} representando a senha digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
    */
   public static String readPassword() {
     Console console = System.console();
     if (console == null) {
-      throw new IllegalStateException("Console nÃ£o disponÃ­vel. Execute em um terminal.");
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
     }
     char[] passwordChars = console.readPassword();
     return new String(passwordChars);
   }
 
   /**
-   * LÃª uma senha do console sem exibir os caracteres digitados, exibindo um prompt personalizado.
+   * Lê uma senha do console sem exibir os caracteres digitados, exibindo um prompt personalizado.
    * <p>
-   * Este mÃ©todo utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal e exibe um prompt personalizado antes da captura. A senha Ã© retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior seguranÃ§a.
+   * Este método utiliza {@link System#console()} para capturar a senha sem ecoar os caracteres digitados no terminal e exibe um prompt personalizado antes da captura. A senha é retornada como uma string, mas recomenda-se tratar a senha como um array de caracteres para maior segurança.
    *
    * @param prompt O texto a ser exibido antes da captura da senha.
-   * @return Uma {@link String} representando a senha digitada pelo usuÃ¡rio.
-   * @throws IllegalStateException se o {@link System#console()} nÃ£o estiver disponÃ­vel.
+   * @return Uma {@link String} representando a senha digitada pelo usuário.
+   * @throws IllegalStateException se o {@link System#console()} não estiver disponível.
    */
   public static String readPassword(String prompt) {
     Console console = System.console();
     if (console == null) {
-      throw new IllegalStateException("Console nÃ£o disponÃ­vel. Execute em um terminal.");
+      throw new IllegalStateException("Console não disponível. Execute em um terminal.");
     }
     char[] passwordChars = console.readPassword(prompt);
     return new String(passwordChars);
   }
 
+  /**
+   * Obtém o número de colunas do terminal, de acordo com o sistema operacional.
+   * <p>
+   * Para sistemas Unix/Linux, utiliza o comando "stty size". Para sistemas Windows, utiliza uma chamada JNA na DLL Kernel32. Caso não seja possível determinar o valor, o método retornará o valor de {@link Terminal#getTerminalDefaultColumns()}.
+   *
+   * @return O número de colunas do terminal, ou valor de colunas padrão se não for possível determinar.
+   */
+  public static Integer getTerminalColumns() {
+    Integer cols = null;
+    try {
+      String os = System.getProperty("os.name").toLowerCase();
+      if (os.contains("win")) {
+        cols = getWindowsTerminalCols();
+      } else {
+        cols = getUnixTerminalCols();
+      }
+    } catch (Exception e) {
+    }
+    return PreProcess.coalesce(cols, getTerminalDefaultColumns());
+  }
+
+  /**
+   * Obtém o número de colunas do terminal em sistemas Unix/Linux.
+   *
+   * @return O número de colunas do terminal, ou null se não for possível determinar.
+   */
+  private static Integer getUnixTerminalCols() {
+    try {
+      Process process = Runtime.getRuntime().exec(new String[] { "sh", "-c", "stty size 2>/dev/null || echo 80 24" });
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        String[] size = reader.readLine().split(" ");
+        return Integer.parseInt(size[1]); // Retorna o número de colunas (segundo valor)
+      }
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Obtém o número de colunas do terminal usando JNA para acessar o Windows API.
+   *
+   * @return O número de colunas do terminal, ou null se não for possível determinar.
+   */
+  public static Integer getWindowsTerminalCols() {
+    Kernel32.CONSOLE_SCREEN_BUFFER_INFO info = new Kernel32.CONSOLE_SCREEN_BUFFER_INFO();
+    int hConsole = Kernel32.INSTANCE.GetStdHandle(Kernel32.STD_OUTPUT_HANDLE);
+
+    if (Kernel32.INSTANCE.GetConsoleScreenBufferInfo(hConsole, info)) {
+      return (int) info.dwSize.X; // Retorna o número de colunas
+    }
+    return null; // Retorna null em caso de falha
+  }
+
+  /**
+   * # define o tamanho padrão do terminal para quando não for possível obter o tamanho correto do terminal.<Br>
+   * .
+   *
+   * @return the define o tamanho padrão do terminal para quando não for possível obter o tamanho correto do terminal
+   */
+  public static int getTerminalDefaultColumns() {
+    return terminalDefaultColumns;
+  }
+
+  /**
+   * # define o tamanho padrão do terminal para quando não for possível obter o tamanho correto do terminal.<Br>
+   * .
+   *
+   * @param terminalDefaultColumns the new define o tamanho padrão do terminal para quando não for possível obter o tamanho correto do terminal
+   */
+  public static void setTerminalDefaultColumns(int terminalDefaultColumns) {
+    Terminal.terminalDefaultColumns = terminalDefaultColumns;
+  }
+
+  /**
+   * Escreve o texto gerado pelo Figlet centralizado no terminal.
+   *
+   * @param text O texto a ser convertido em arte ASCII.
+   * @param fontType A fonte do Figlet a ser utilizada.
+   * @throws IOException Caso ocorra um erro durante a geração da arte.
+   * @throws RFWException
+   */
+  public static void writeFigletCentralized(String text, Figlet.FigletFontType fontType) throws RFWException {
+    try {
+      // Gera a arte ASCII usando o Figlet
+      String asciiArt = Figlet.generateWithFont(text, fontType);
+
+      // Obtém o número de colunas do terminal
+      Integer terminalCols = getTerminalColumns();
+
+      // Se não for possível obter o número de colunas, usa o valor padrão
+      if (terminalCols == null) {
+        terminalCols = getTerminalDefaultColumns();
+      }
+
+      // Centraliza a arte ASCII com base no número de colunas
+      String centeredArt = Figlet.centralize(asciiArt, terminalCols);
+
+      // Imprime o resultado no console linha por linha com o comando para completar o restante da linha para garantir as cores de fundo quanto utilizadas
+      for (String line : centeredArt.split("\n")) {
+        System.out.println(line + ASCII_CLEAR_REMAINING_LINE);
+      }
+      totalPartialLineWrote = 0;
+    } catch (Exception e) {
+      throw new RFWCriticalException("Erro ao gerar ou centralizar a arte ASCII.", e);
+    }
+  }
+
+  /**
+   * Escreve um conteúdo alinhado a direita na posição definida.
+   *
+   * @param text Texto a ser escrito a linhado a direita.
+   * @param col Coluna de posição do texto.
+   */
+  public static void writeAlignedRight(String text, int col) {
+    System.out.println(RUString.completeUntilLengthLeft(" ", text, col - totalPartialLineWrote) + ASCII_CLEAR_REMAINING_LINE);
+    totalPartialLineWrote = 0;
+  }
+
+  /**
+   * Escreve um padrão de texto repetido de acordo com o total de colunas do console.
+   *
+   * @param pattern
+   */
+  public static void writeFullLine(String pattern) {
+    System.out.println(RUString.completeOrTruncateUntilLengthLeft(pattern, "", getTerminalColumns()) + ASCII_CLEAR_REMAINING_LINE);
+    totalPartialLineWrote = 0;
+  }
+
+  /**
+   * Simplesmente faz a impressão no console, mas acrescenta o código {@link #ASCII_CLEAR_REMAINING_LINE}Ipara garantir a cor até o final do console.
+   *
+   * @param text
+   */
+  public static void write(String text) {
+    System.out.println(text + ASCII_CLEAR_REMAINING_LINE);
+    totalPartialLineWrote = 0;
+  }
+
+  /**
+   * Este método tem a simples função de escrever parte do texto da linha, escreve com o print() ao invés do println(). No entanto adiciona o caracter ASCII para colorir a linha até o final, e armazena internamente a quantidade de texto que já foi escrito na linha. Permitindo assim que outros métodos como {@link #writeAlignedRight(String, int)} consigam descontar o texto já escrito.
+   *
+   * @param text
+   */
+  public static void writePart(String text) {
+    System.out.print(text + ASCII_CLEAR_REMAINING_LINE);
+    totalPartialLineWrote += text.length();
+  }
+
+  /**
+   * Escreve um texto alinhado ao lado direito (final) do console.
+   *
+   * @param text Texto a ser escrito.
+   */
+  public static void writeAlignedRight(String text) {
+    writeAlignedRight(text, getTerminalColumns());
+  }
 }
