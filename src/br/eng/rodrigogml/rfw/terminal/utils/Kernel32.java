@@ -8,15 +8,15 @@ import com.sun.jna.Structure;
 import com.sun.jna.win32.StdCallLibrary;
 
 /**
- * Description: Classe para chamada direta da biblioteca kernel32 do windows e obter melhor controle do terminal e outras funções do SO.<br>
+ * Description: Classe para chamada direta da biblioteca kernel32 do windows e obter melhor controle do terminal e outras funÃ§Ãµes do SO.<br>
  *
- * @author Rodrigo Leitão
+ * @author Rodrigo LeitÃ£o
  * @since (8 de set. de 2024)
  */
 public interface Kernel32 extends StdCallLibrary {
   Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 
-  // Estrutura para armazenar as informações do console
+  // Estrutura para armazenar as informaÃ§Ãµes do console
   @Structure.FieldOrder({ "dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize" })
   class CONSOLE_SCREEN_BUFFER_INFO extends Structure {
     public COORD dwSize;

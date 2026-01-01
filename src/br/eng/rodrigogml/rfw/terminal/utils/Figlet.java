@@ -11,15 +11,15 @@ import br.eng.rodrigogml.rfw.kernel.exceptions.RFWException;
 import br.eng.rodrigogml.rfw.kernel.utils.RUString;
 
 /**
- * Description: Classe para geraÁ„o de texto "art ASCII" ou Figlet Fonts sob demanda.<br>
+ * Description: Classe para gera√ß√£o de texto "art ASCII" ou Figlet Fonts sob demanda.<br>
  *
- * @author Rodrigo Leit„o
+ * @author Rodrigo Leit√£o
  * @since (8 de set. de 2024)
  */
 public class Figlet {
 
   /**
-   * EnumeraÁ„o para representar as fontes disponÌveis na biblioteca Figlet4J.
+   * Enumera√ß√£o para representar as fontes dispon√≠veis na biblioteca Figlet4J.
    */
   public enum FigletFontType {
     STANDARD("standard"), BLOCK("block"), SLANT("slant"), SHADOW("shadow"), BIG("big"), THREE_D("3-d"), THREE_X_FIVE("3x5"), FIVE_LINE_OBLIQUE("5lineoblique"), ACROBATIC("acrobatic"), ALLIGATOR("alligator"), ALPHABET("alphabet"), AVATAR("avatar"), BANNER("banner"), BANNER3_D("banner3-D"), BANNER3("banner3"), BANNER4("banner4"), BARBWIRE("barbwire"), BASIC("basic"), BELL("bell"), BIGCHIEF("bigchief"), BINARY("binary"), BUBBLE("bubble"), BULBHEAD("bulbhead"), CALGPHY2("calgphy2"), CALIGRAPHY("caligraphy"), CATWALK("catwalk"), CHUNKY("chunky"), COINSTAK("coinstak"), COLOSSAL("colossal"), COMPUTER("computer"), CONTESSA("contessa"), CONTRAST("contrast"), COSMIC("cosmic"), COSMIKE("cosmike"), CRICKET("cricket"), CURSIVE("cursive"), CYBERLARGE("cyberlarge"), CYBERMEDIUM("cybermedium"), CYBERSMALL("cybersmall"), DIAMOND("diamond"), DIGITAL("digital"), DOH("doh"), DOOM("doom"), DOTMATRIX("dotmatrix"), DRPEPPER("drpepper"), EFTICHESS("eftichess"), EFTIFONT("eftifont"), EFTIPITI("eftipiti"), EFTIROBOT("eftirobot"), EFTITALIC(
@@ -29,9 +29,9 @@ public class Figlet {
     private final String fontName;
 
     /**
-     * Construtor da enumeraÁ„o.
+     * Construtor da enumera√ß√£o.
      *
-     * @param fontName O nome da fonte incluÌda na biblioteca Figlet4J.
+     * @param fontName O nome da fonte inclu√≠da na biblioteca Figlet4J.
      */
     FigletFontType(String fontName) {
       this.fontName = fontName;
@@ -48,35 +48,35 @@ public class Figlet {
   }
 
   /**
-   * Gera texto em ASCII Art usando a fonte padr„o.
+   * Gera texto em ASCII Art usando a fonte padr√£o.
    *
    * @param text O texto a ser convertido em ASCII Art.
    * @return String contendo o texto convertido em ASCII Art.
-   * @throws Exception Caso ocorra algum erro durante a convers„o.
+   * @throws Exception Caso ocorra algum erro durante a convers√£o.
    */
   public static String generate(String text) throws Exception {
-    return FigletFont.convertOneLine(text); // Usa a fonte padr„o incluÌda na dependÍncia
+    return FigletFont.convertOneLine(text); // Usa a fonte padr√£o inclu√≠da na depend√™ncia
   }
 
   /**
-   * Gera texto em ASCII Art com uma fonte especÌfica definida pela enumeraÁ„o FigletFontType.
+   * Gera texto em ASCII Art com uma fonte espec√≠fica definida pela enumera√ß√£o FigletFontType.
    *
    * @param text O texto a ser convertido em ASCII Art.
-   * @param fontType A fonte a ser usada, representada pela enumeraÁ„o FigletFontType.
+   * @param fontType A fonte a ser usada, representada pela enumera√ß√£o FigletFontType.
    * @return String contendo o texto convertido em ASCII Art.
-   * @throws Exception Caso ocorra algum erro durante a convers„o.
+   * @throws Exception Caso ocorra algum erro durante a convers√£o.
    */
   public static String generateWithFont(String text, FigletFontType fontType) throws Exception {
-    // Carrega a fonte diretamente do classpath usando o fontName da enumeraÁ„o
+    // Carrega a fonte diretamente do classpath usando o fontName da enumera√ß√£o
     String fontPath = "/flf/" + fontType.getFontName() + ".flf";
     return FigletFont.convertOneLine(Figlet.class.getResourceAsStream(fontPath), text);
   }
 
   /**
-   * Gera um arquivo HTML com exemplos de todas as fontes Figlet disponÌveis.
+   * Gera um arquivo HTML com exemplos de todas as fontes Figlet dispon√≠veis.
    *
    * @param exampleText O texto de exemplo a ser utilizado em todas as fontes.
-   * @param outputPath O caminho para o arquivo .html ou pasta onde o arquivo ser· salvo.
+   * @param outputPath O caminho para o arquivo .html ou pasta onde o arquivo ser√° salvo.
    * @throws IOException Caso ocorra algum erro ao escrever o arquivo.
    */
   public static void exportFigletPortfolioHTML(String exampleText, String outputPath) throws RFWException {
@@ -99,7 +99,7 @@ public class Figlet {
         writer.write("</style>\n</head>\n<body>\n");
         writer.write("<h1>Figlet Fonts</h1>\n");
 
-        // Percorre todas as fontes da enumeraÁ„o e escreve o texto de exemplo
+        // Percorre todas as fontes da enumera√ß√£o e escreve o texto de exemplo
         for (FigletFontType fontType : FigletFontType.values()) {
           writer.write("<h2>" + fontType.name() + "</h2>\n");
           writer.write("<pre>\n");
@@ -124,13 +124,13 @@ public class Figlet {
   }
 
   /**
-   * Centraliza a arte ASCII em um n˙mero especÌfico de colunas.
+   * Centraliza a arte ASCII em um n√∫mero espec√≠fico de colunas.
    * <p>
-   * O mÈtodo analisa o comprimento da linha mais longa na arte ASCII e insere espaÁos antes de cada linha para fazer com que a arte pareÁa centralizada no n˙mero de colunas fornecido. Se a linha mais longa j· ocupar o total de colunas ou for maior, a arte È retornada sem modificaÁ„o.
+   * O m√©todo analisa o comprimento da linha mais longa na arte ASCII e insere espa√ßos antes de cada linha para fazer com que a arte pare√ßa centralizada no n√∫mero de colunas fornecido. Se a linha mais longa j√° ocupar o total de colunas ou for maior, a arte √© retornada sem modifica√ß√£o.
    *
    * @param asciiArt A arte ASCII a ser centralizada.
-   * @param totalColumns O n˙mero total de colunas disponÌveis para centralizar o texto.
-   * @return A arte ASCII centralizada, ou a arte original se j· for maior que o n˙mero de colunas.
+   * @param totalColumns O n√∫mero total de colunas dispon√≠veis para centralizar o texto.
+   * @return A arte ASCII centralizada, ou a arte original se j√° for maior que o n√∫mero de colunas.
    */
   public static String centralize(String asciiArt, int totalColumns) {
     String[] lines = asciiArt.split("\n");
@@ -146,7 +146,7 @@ public class Figlet {
       return asciiArt;
     }
 
-    // Calcula o n˙mero de espaÁos necess·rios para centralizar a arte como um todo
+    // Calcula o n√∫mero de espa√ßos necess√°rios para centralizar a arte como um todo
     int padding = (totalColumns - maxLength) / 2;
     String paddingBlock = RUString.completeUntilLengthRight(" ", "", padding);
     StringBuilder centeredArt = new StringBuilder();
