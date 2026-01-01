@@ -11,9 +11,9 @@ import br.eng.rodrigogml.rfw.kernel.exceptions.RFWValidationException;
 /**
  * Description: Parser para linhas de comando.<br>
  * Capaz de quebrar linhas de comando como:<bR>
- * <li>arg1 arg2 arg3 -param1 -param2=valor --param3 = "Esse È um \"Valor\" do param3" arg4 -param5= 'Este È outro \'tipo de valor com Scape\' de aspas e outras " no conte˙do interno do texto'</li>
+ * <li>arg1 arg2 arg3 -param1 -param2=valor --param3 = "Esse √© um \"Valor\" do param3" arg4 -param5= 'Este √© outro \'tipo de valor com Scape\' de aspas e outras " no conte√∫do interno do texto'</li>
  *
- * @author Rodrigo Leit„o
+ * @author Rodrigo Leit√£o
  * @since (8 de set. de 2024)
  */
 public class CommandParser {
@@ -30,8 +30,8 @@ public class CommandParser {
    * Realiza o parser da linha de comando.
    *
    * @param commandLine linha de comando para realizar o parser
-   * @return Inst‚ncia de {@link ParsedCommand} com os tokens
-   * @throws RFWValidationException LanÁado em caso de falha de estrutura do comando detectado.
+   * @return Inst√¢ncia de {@link ParsedCommand} com os tokens
+   * @throws RFWValidationException Lan√ßado em caso de falha de estrutura do comando detectado.
    */
   public static ParsedCommand parse(String commandLine) throws RFWException {
     ParsedCommand result = new ParsedCommand();
@@ -45,12 +45,12 @@ public class CommandParser {
     char quoteChar = 0; // Para lidar com " ou '
     boolean escapedQuotes = false;
 
-    // arg1 arg2 arg3 -param1 -param2=valor --param3 = "Esse È um \"Valor\" do param3" arg4 -param5= 'Este È outro \'tipo de valor com Scape\' de aspas e outras " no conte˙do interno do texto'
+    // arg1 arg2 arg3 -param1 -param2=valor --param3 = "Esse √© um \"Valor\" do param3" arg4 -param5= 'Este √© outro \'tipo de valor com Scape\' de aspas e outras " no conte√∫do interno do texto'
     for (int i = 0; i < commandLine.length(); i++) {
       char c = commandLine.charAt(i);
 
       if (Character.isWhitespace(c) && !insideQuotes) {
-        // Se È um espaÁo, finalizamos os buffers
+        // Se √© um espa√ßo, finalizamos os buffers
         if (currentArgument.length() > 0) {
           result.arguments.add(currentArgument.toString());
           currentArgument.setLength(0);
@@ -86,7 +86,7 @@ public class CommandParser {
             quoteChar = 0;
             insideQuotes = false;
           } else {
-            if (nextDataIsValue || currentParamValue.length() > 0) { // Estamos escrevendo o valor do par‚metro
+            if (nextDataIsValue || currentParamValue.length() > 0) { // Estamos escrevendo o valor do par√¢metro
               currentParamValue.append(c);
             } else {
               currentArgument.append(c);
@@ -94,7 +94,7 @@ public class CommandParser {
           }
         } else {
           if (currentArgument.length() > 0 || currentParamName.length() > 0 || currentParamValue.length() > 0) {
-            throw new RFWValidationException("RFW_000046", new String[] { "" + c, "" + i, commandLine.substring(Math.max(0, i - 10), Math.min(i + 10, commandLine.length() - 1)) }); // N„o È esperado iniciar aspas depois que algum bloco j· comeÁou a ser escrito pode ser um argumento ou um par‚metro
+            throw new RFWValidationException("RFW_000046", new String[] { "" + c, "" + i, commandLine.substring(Math.max(0, i - 10), Math.min(i + 10, commandLine.length() - 1)) }); // N√£o √© esperado iniciar aspas depois que algum bloco j√° come√ßou a ser escrito pode ser um argumento ou um par√¢metro
           }
           insideQuotes = true;
           quoteChar = c;
@@ -113,9 +113,9 @@ public class CommandParser {
         nextDataIsValue = true;
       } else {
         // Anexamos o caracter no buffer adequado
-        if (nextDataIsValue || currentParamValue.length() > 0) { // Estamos escrevendo o valor do par‚metro
+        if (nextDataIsValue || currentParamValue.length() > 0) { // Estamos escrevendo o valor do par√¢metro
           currentParamValue.append(c);
-        } else if (currentParamName.length() > 0) { // Estamos escrevendo um par‚metro
+        } else if (currentParamName.length() > 0) { // Estamos escrevendo um par√¢metro
           currentParamName.append(c);
         } else {
           currentArgument.append(c);
